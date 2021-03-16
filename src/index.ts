@@ -28,7 +28,7 @@ export default function (api, userConfig) {
         }
       }
     });
-    syntheticConfig = Object.assign({}, defaultConfig, api.config.routeJSON || {});
+    syntheticConfig = Object.assign({}, defaultConfig, api.userConfig.routeJSON || {});
     routes = api.userConfig.routes;
   }
   const { dist, filename, localeFilePath } = syntheticConfig;
