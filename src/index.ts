@@ -5,9 +5,34 @@ import defaultConfig from './defaultConfig';
 import { getRandomFileName, normalizeRoutes } from './utils';
 
 export default function (api, userConfig) {
-  const syntheticConfig = Object.assign({}, defaultConfig, userConfig);
+  const pkg = require(path.join(api.paths.absNodeModulesPath, 'umi', 'package.json'));
+  const umiMajorVersion = pkg.version.split('.')[0];
+  let syntheticConfig: any = {};
+  let routes: any[] = [];
+  if (umiMajorVersion == 2) {
+    syntheticConfig = Object.assign({}, defaultConfig, userConfig);
+    routes = api.routes;
+  } else if (umiMajorVersion == 3) {
+    api.describe({
+      key: 'routeJSON',
+      config: {
+        schema(joi) {
+          return joi.object({
+            dist: joi.string(),
+            filename: joi.string(),
+            flag: joi.string(),
+            reservedAttributes: joi.array().items(joi.string()),
+            localeFilePath: joi.string(),
+            i18n: joi.string()
+          });
+        }
+      }
+    });
+    syntheticConfig = Object.assign({}, defaultConfig, api.config.routeJSON || {});
+    routes = api.userConfig.routes;
+  }
   const { dist, filename, localeFilePath } = syntheticConfig;
-  api.onGenerateFiles(() => {
+  api.onStart(() => {
     const cwd = process.cwd();
     // 提取国际化内容
     let localeFileName = getRandomFileName() + '.js';
@@ -24,7 +49,6 @@ export default function (api, userConfig) {
       .then(() => {
         const locales = require(path.join(cwd, localeFileName));
         // 提取路由信息
-        const routes = [...api.routes];
         const leftRoutes = [];
         const currentPath = [];
         normalizeRoutes(routes, currentPath, leftRoutes, locales, syntheticConfig);

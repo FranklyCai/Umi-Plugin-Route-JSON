@@ -25,7 +25,7 @@ export const normalizeRoutes = (routes, currentPath, leftRoutes, locales, synthe
         );
       }
       if (route.routes) {
-        normalizeRoutes(route.routes, currentPath, leftRoutes, locales, syntheticConfig.flag);
+        normalizeRoutes(route.routes, currentPath, leftRoutes, locales, syntheticConfig);
       }
     });
     currentPath.pop();
