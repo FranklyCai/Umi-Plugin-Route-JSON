@@ -11,7 +11,6 @@ export default function (api, userConfig) {
   let routes: any[] = [];
   if (umiMajorVersion == 2) {
     syntheticConfig = Object.assign({}, defaultConfig, userConfig);
-    routes = api.routes;
   } else if (umiMajorVersion == 3) {
     api.describe({
       key: 'routeJSON',
@@ -21,6 +20,7 @@ export default function (api, userConfig) {
             dist: joi.string(),
             filename: joi.string(),
             flag: joi.string(),
+            pathPrefix: joi.string(),
             reservedAttributes: joi.array().items(joi.string()),
             localeFilePath: joi.string(),
             i18n: joi.string()
@@ -33,6 +33,11 @@ export default function (api, userConfig) {
   }
   const { dist, filename, localeFilePath } = syntheticConfig;
   api.onStart(() => {
+    if (umiMajorVersion == 2) {
+      routes = api.routes;
+    } else if (umiMajorVersion == 3) {
+      routes = api.userConfig.routes;
+    }
     const cwd = process.cwd();
     // 提取国际化内容
     let localeFileName = getRandomFileName() + '.js';
@@ -47,11 +52,12 @@ export default function (api, userConfig) {
         outfile: localeFileName
       })
       .then(() => {
-        const locales = require(path.join(cwd, localeFileName));
+        const locales = require(path.join(cwd, localeFileName)).default;
         // 提取路由信息
         const leftRoutes = [];
         const currentPath = [];
-        normalizeRoutes(routes, currentPath, leftRoutes, locales, syntheticConfig);
+        const currentName = [];
+        normalizeRoutes(routes, currentName, currentPath, leftRoutes, locales, syntheticConfig, umiMajorVersion);
 
         if (!fs.existsSync(path.join(cwd, dist))) {
           fs.mkdirSync(path.join(cwd, dist), {
@@ -65,6 +71,9 @@ export default function (api, userConfig) {
           });
         });
       })
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        console.error(e);
+        process.exit(1);
+      });
   });
 }
