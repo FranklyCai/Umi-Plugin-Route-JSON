@@ -23,7 +23,8 @@ export default function (api, userConfig) {
             pathPrefix: joi.string(),
             reservedAttributes: joi.array().items(joi.string()),
             localeFilePath: joi.string(),
-            i18n: joi.string()
+            i18n: joi.string(),
+            defaultParams: joi.object()
           });
         }
       }

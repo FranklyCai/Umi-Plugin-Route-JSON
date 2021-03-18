@@ -12,5 +12,7 @@ export default {
   // 默认locale文件存放的位置
   localeFilePath: 'src/locales/zh-CN',
   // 输出的文件locale字段对应的名称
-  i18n: 'i18n'
+  i18n: 'i18n',
+  // 遇到有带参数的路由时，这里可以配置它的默认路由
+  defaultParams: {}
 };

@@ -13,6 +13,16 @@ const processFilteredRoute = (route, reservedAttributes) => {
   return route;
 };
 
+const processPathDefaultParams = (defaultParams, path) => {
+  if (defaultParams) {
+    return Object.keys(defaultParams).reduce((path, paramKey) => {
+      path = path.replace(new RegExp(':' + paramKey, 'g'), defaultParams[paramKey]);
+      return path;
+    }, path);
+  }
+  return path;
+};
+
 export const normalizeRoutes = (
   routes,
   currentName,
@@ -37,11 +47,17 @@ export const normalizeRoutes = (
     if (route[syntheticConfig.flag]) {
       const routeCopy = { ...route };
       if (umiMajorVersion == 2) {
-        routeCopy.path = syntheticConfig.pathPrefix + routeCopy.path;
+        routeCopy.path = processPathDefaultParams(route.defaultParams, syntheticConfig.pathPrefix + routeCopy.path);
       } else if (umiMajorVersion == 3) {
         routeCopy.path = route.routes
-          ? (syntheticConfig.pathPrefix + path.join(...currentPath)).replace(/\\/g, '/')
-          : (syntheticConfig.pathPrefix + path.join(...currentPath, route.path)).replace(/\\/g, '/');
+          ? processPathDefaultParams(
+              route.defaultParams,
+              (syntheticConfig.pathPrefix + path.join(...currentPath)).replace(/\\/g, '/')
+            )
+          : processPathDefaultParams(
+              route.defaultParams,
+              (syntheticConfig.pathPrefix + path.join(...currentPath, route.path)).replace(/\\/g, '/')
+            );
       }
       routeCopy[syntheticConfig.i18n] = route.routes
         ? locales[['menu'].concat(currentName).join('.')]
